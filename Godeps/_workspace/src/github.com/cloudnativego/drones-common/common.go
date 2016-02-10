@@ -1,34 +1,29 @@
-package main
+package dronecommon
 
-type telemetryCommand struct {
+// TelemetryUpdatedEvent is an event containing telemetry updates received from a drone
+type TelemetryUpdatedEvent struct {
 	DroneID          string `json:"drone_id"`
 	RemainingBattery int    `json:"battery"`
 	Uptime           int    `json:"uptime"`
 	CoreTemp         int    `json:"core_temp"`
+	ReceivedOn       int64  `json:"received_on"`
 }
 
-type alertCommand struct {
+// AlertSignalledEvent is an event indicating an alert condition was reported by a drone
+type AlertSignalledEvent struct {
 	DroneID     string `json:"drone_id"`
 	FaultCode   int    `json:"fault_code"`
 	Description string `json:"description"`
+	ReceivedOn  int64  `json:"received_on"`
 }
 
-type positionCommand struct {
+// PositionChangedEvent is an event indicating that the position and speed of a drone was reported.
+type PositionChangedEvent struct {
 	DroneID         string  `json:"drone_id"`
 	Latitude        float32 `json:"latitude"`
 	Longitude       float32 `json:"longitude"`
 	Altitude        float32 `json:"altitude"`
 	CurrentSpeed    float32 `json:"current_speed"`
 	HeadingCardinal int     `json:"heading_cardinal"`
-}
-
-func (telemetry telemetryCommand) isValid() (valid bool) {
-	valid = true
-	if len(telemetry.DroneID) == 0 {
-		valid = false
-	}
-	if telemetry.Uptime == 0 {
-		valid = false
-	}
-	return valid
+	ReceivedOn      int64   `json:"received_on"`
 }

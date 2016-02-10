@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -10,11 +12,23 @@ import (
 
 func addTelemetryHandler(formatter *render.Render) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		payload, _ := ioutil.ReadAll(req.Body)
+		var newTelemetryCommand telemetryCommand
+		err := json.Unmarshal(payload, &newTelemetryCommand)
+		if err != nil {
+			formatter.Text(w, http.StatusBadRequest, "Failed to parse add telemetry command.")
+			return
+		}
+		if !newTelemetryCommand.isValid() {
+			formatter.Text(w, http.StatusBadRequest, "Invalid telemetry command.")
+			return
+		}
+
 		evt := dronescommon.TelemetryUpdatedEvent{
-			DroneID:          "foo",
-			RemainingBattery: 1,
-			Uptime:           1,
-			CoreTemp:         1,
+			DroneID:          newTelemetryCommand.DroneID,
+			RemainingBattery: newTelemetryCommand.RemainingBattery,
+			Uptime:           newTelemetryCommand.Uptime,
+			CoreTemp:         newTelemetryCommand.CoreTemp,
 			ReceivedOn:       time.Now().UnixNano(),
 		}
 		formatter.JSON(w, http.StatusCreated, evt)
