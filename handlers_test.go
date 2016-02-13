@@ -98,13 +98,32 @@ func TestAddValidPositionCreatesCommand(t *testing.T) {
 	dispatcher := fakes.NewFakeQueueDispatcher()
 	server := MakeTestServer(dispatcher)
 	recorder = httptest.NewRecorder()
-	body := []byte("{\"foo\":\"bar\"}")
+	body := []byte("{\"drone_id\":\"positiondrone1\", \"latitude\": 81.231, \"longitude\": 43.1231, \"altitude\": 2301.1, \"current_speed\": 41.3, \"heading_cardinal\": 1}")
 	reader := bytes.NewReader(body)
 	request, _ = http.NewRequest("POST", "/api/cmds/positions", reader)
 	server.ServeHTTP(recorder, request)
 
 	if recorder.Code != http.StatusCreated {
-		t.Errorf("Expected creation of new position item to return 201, got %d", recorder.Code)
+		t.Errorf("Expected creation of new position item to return 201, got %d/%s", recorder.Code, string(recorder.Body.Bytes()))
+	}
+	if dispatcher.DispatchCount != 1 {
+		t.Errorf("Expected queue dispatch count of 1, got %d", dispatcher.DispatchCount)
+	}
+	if len(dispatcher.Messages["position"]) != 1 {
+		t.Errorf("Expected position message count of 1, got %d", len(dispatcher.Messages["position"]))
+	}
+
+	var positionResponse dronescommon.PositionChangedEvent
+	payload := recorder.Body.Bytes()
+	err := json.Unmarshal(payload, &positionResponse)
+	if err != nil {
+		t.Errorf("Could not unmarshal payload into position response object")
+	}
+	if positionResponse.DroneID != "positiondrone2" {
+		t.Errorf("Expected drone ID of 'positiondrone2' got %s", positionResponse.DroneID)
+	}
+	if positionResponse.CurrentSpeed != 41.3 {
+		t.Errorf("Expected drone speed of 41.3, got %f", positionResponse.CurrentSpeed)
 	}
 }
 

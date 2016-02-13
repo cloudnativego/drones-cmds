@@ -60,7 +60,7 @@ func addAlertHandler(formatter *render.Render, dispatcher queueDispatcher) http.
 	}
 }
 
-func addPositionHandler(formatter *render.Render) http.HandlerFunc {
+func addPositionHandler(formatter *render.Render, dispatcher queueDispatcher) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		formatter.JSON(w, http.StatusCreated, "tbd")
 	}
