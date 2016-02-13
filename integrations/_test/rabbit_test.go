@@ -27,6 +27,7 @@ func TestAmqpDispatcherSubmitsToQueue(t *testing.T) {
 	if len(rabbitHost) > 0 {
 		rabbitURL = fmt.Sprintf("amqp://guest:guest@%s:4369%s", rabbitHost, rabbitName)
 	}
+	fmt.Printf("\nUsing URL (%s) for Rabbit.\n", rabbitURL)
 
 	conn, err := amqp.Dial(rabbitURL)
 	failOnError(t, err, "Failed to connect to RabbitMQ")
