@@ -16,13 +16,13 @@ type fakeMessage struct {
 
 func TestAmqpDispatcherSubmitsToQueue(t *testing.T) {
 
-	rabbitPw := os.Getenv("WERCKER_RABBITMQ_PASSWORD")
-	rabbitUserName := os.Getenv("WERCKER_RABBITMQ_USERNAME")
+	//rabbitPw := os.Getenv("WERCKER_RABBITMQ_PASSWORD")
+	//	rabbitUserName := os.Getenv("WERCKER_RABBITMQ_USERNAME")
 	rabbitHost := os.Getenv("RABBITMQ_PORT_5671_TCP_ADDR")
 	rabbitPort := os.Getenv("RABBITMQ_PORT_5671_TCP_PORT")
 	rabbitURL := "amqp://guest:guest@192.168.99.100:5672/"
 	if len(rabbitHost) > 0 {
-		rabbitURL = fmt.Sprintf("amqp://guest:guest@%s:%s/", rabbitUserName, rabbitPw, rabbitHost, rabbitPort)
+		rabbitURL = fmt.Sprintf("amqp://guest:guest@%s:%s/", rabbitHost, rabbitPort)
 	}
 
 	conn, err := amqp.Dial(rabbitURL)
