@@ -127,6 +127,28 @@ func TestAddValidPositionCreatesCommand(t *testing.T) {
 	}
 }
 
+func TestAddInvalidPositionCommandReturnsBadRequest(t *testing.T) {
+	var (
+		request  *http.Request
+		recorder *httptest.ResponseRecorder
+	)
+
+	dispatcher := fakes.NewFakeQueueDispatcher()
+	server := MakeTestServer(dispatcher)
+	recorder = httptest.NewRecorder()
+	body := []byte("{\"foo\":\"bar\"}")
+	reader := bytes.NewReader(body)
+	request, _ = http.NewRequest("POST", "/api/cmds/positions", reader)
+	server.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusBadRequest {
+		t.Errorf("Expected creation of invalid/unparseable new position item to return bad request, got %d", recorder.Code)
+	}
+	if dispatcher.DispatchCount != 0 {
+		t.Errorf("Expected dispatcher to dispatch 0 messages, got %d", dispatcher.DispatchCount)
+	}
+}
+
 func TestAddValidAlertCreatesCommand(t *testing.T) {
 	var (
 		request  *http.Request
