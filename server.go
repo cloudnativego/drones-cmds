@@ -25,6 +25,6 @@ func NewServer() *negroni.Negroni {
 
 func initRoutes(mx *mux.Router, formatter *render.Render, dispatcher queueDispatcher) {
 	mx.HandleFunc("/api/cmds/telemetry", addTelemetryHandler(formatter, dispatcher)).Methods("POST")
-	mx.HandleFunc("/api/cmds/alerts", addAlertHandler(formatter)).Methods("POST")
+	mx.HandleFunc("/api/cmds/alerts", addAlertHandler(formatter, dispatcher)).Methods("POST")
 	mx.HandleFunc("/api/cmds/positions", addPositionHandler(formatter)).Methods("POST")
 }

@@ -118,13 +118,13 @@ func TestAddValidAlertCreatesCommand(t *testing.T) {
 	server := MakeTestServer(dispatcher)
 	recorder = httptest.NewRecorder()
 
-	body := []byte("{\"drone_id\":\"alertingdrone4\", \"fault_code\", 12, \"description\": \"all the things are failing\"}")
+	body := []byte("{\"drone_id\":\"alertingdrone4\", \"fault_code\": 12, \"description\": \"all the things are failing\"}")
 	reader := bytes.NewReader(body)
 	request, _ = http.NewRequest("POST", "/api/cmds/alerts", reader)
 	server.ServeHTTP(recorder, request)
 
 	if recorder.Code != http.StatusCreated {
-		t.Errorf("Expected creation of new alert item to return 201, got %d", recorder.Code)
+		t.Errorf("Expected creation of new alert item to return 201, got %d/%s", recorder.Code, string(recorder.Body.Bytes()))
 	}
 	if dispatcher.DispatchCount != 1 {
 		t.Errorf("Expected queue dispatch count of 1, got %d", dispatcher.DispatchCount)
@@ -139,8 +139,8 @@ func TestAddValidAlertCreatesCommand(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not unmarshal payload into alertResponse object")
 	}
-	if alertResponse.DroneID != "alertingdrone" {
-		t.Errorf("Expected drone ID of 'alertingdrone' got %s", alertResponse.DroneID)
+	if alertResponse.DroneID != "alertingdrone4" {
+		t.Errorf("Expected drone ID of 'alertingdrone4' got %s", alertResponse.DroneID)
 	}
 	if alertResponse.FaultCode != 12 {
 		t.Errorf("Expected drone fault code of 12, got %d", alertResponse.FaultCode)

@@ -36,9 +36,27 @@ func addTelemetryHandler(formatter *render.Render, dispatcher queueDispatcher) h
 	}
 }
 
-func addAlertHandler(formatter *render.Render) http.HandlerFunc {
+func addAlertHandler(formatter *render.Render, dispatcher queueDispatcher) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		formatter.JSON(w, http.StatusCreated, "tbd")
+		payload, _ := ioutil.ReadAll(req.Body)
+		var newAlertCommand alertCommand
+		err := json.Unmarshal(payload, &newAlertCommand)
+		if err != nil {
+			formatter.Text(w, http.StatusBadRequest, "Failed to parse add alert command.")
+			return
+		}
+		if !newAlertCommand.isValid() {
+			formatter.Text(w, http.StatusBadRequest, "Invalid alert command.")
+			return
+		}
+		evt := dronescommon.AlertSignalledEvent{
+			DroneID:     newAlertCommand.DroneID,
+			FaultCode:   newAlertCommand.FaultCode,
+			Description: newAlertCommand.Description,
+			ReceivedOn:  time.Now().UnixNano(),
+		}
+		dispatcher.DispatchMessage("alert", evt)
+		formatter.JSON(w, http.StatusCreated, evt)
 	}
 }
 

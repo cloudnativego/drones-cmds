@@ -36,3 +36,14 @@ func (telemetry telemetryCommand) isValid() (valid bool) {
 	}
 	return valid
 }
+
+func (alert alertCommand) isValid() (valid bool) {
+	valid = true
+	if len(alert.DroneID) == 0 {
+		valid = false
+	}
+	if len(alert.Description) == 0 {
+		valid = false
+	}
+	return
+}
