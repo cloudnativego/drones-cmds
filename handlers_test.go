@@ -57,7 +57,7 @@ func TestAddValidTelemetryCreatesCommand(t *testing.T) {
 	payload := recorder.Body.Bytes()
 	err := json.Unmarshal(payload, &telemetryResponse)
 	if err != nil {
-		t.Errorf("Could not unmarshal payload into newMatchResponse object")
+		t.Errorf("Could not unmarshal payload into telemetry response object")
 	}
 	if telemetryResponse.DroneID != "drone666" {
 		t.Errorf("Expected drone ID of 'drone666' got %s", telemetryResponse.DroneID)
@@ -125,5 +125,24 @@ func TestAddValidAlertCreatesCommand(t *testing.T) {
 
 	if recorder.Code != http.StatusCreated {
 		t.Errorf("Expected creation of new alert item to return 201, got %d", recorder.Code)
+	}
+	if dispatcher.DispatchCount != 1 {
+		t.Errorf("Expected queue dispatch count of 1, got %d", dispatcher.DispatchCount)
+	}
+	if len(dispatcher.Messages["alert"]) != 1 {
+		t.Errorf("Expected alert message count of 1, got %d", len(dispatcher.Messages["alert"]))
+	}
+
+	var alertResponse dronescommon.AlertSignalledEvent
+	payload := recorder.Body.Bytes()
+	err := json.Unmarshal(payload, &alertResponse)
+	if err != nil {
+		t.Errorf("Could not unmarshal payload into alertResponse object")
+	}
+	if alertResponse.DroneID != "alertingdrone" {
+		t.Errorf("Expected drone ID of 'alertingdrone' got %s", alertResponse.DroneID)
+	}
+	if alertResponse.FaultCode != 12 {
+		t.Errorf("Expected drone fault code of 12, got %d", alertResponse.FaultCode)
 	}
 }
