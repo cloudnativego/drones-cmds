@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/cloudnativego/drones-cmds/fakes"
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
 	"github.com/unrolled/render"
@@ -16,7 +17,9 @@ func NewServer() *negroni.Negroni {
 	n := negroni.Classic()
 	mx := mux.NewRouter()
 
-	dispatcher := &amqpDispatcher{} // TODO: replace with real values
+	dispatcher := fakes.NewFakeQueueDispatcher()
+	// TODO - if we detect real bound Rabbit, use the AMQP dispatcher
+	//dispatcher := NewAMQPDispatcher(nil)
 	initRoutes(mx, formatter, dispatcher)
 
 	n.UseHandler(mx)

@@ -1,5 +1,8 @@
 box: golang
 
+services:
+  - rabbitmq
+
 build:
 
   steps:
@@ -24,6 +27,11 @@ build:
         name: go test
         code: |
           godep go test -v ./...
+
+    - script:
+        name: integration tests
+        code: |
+          godep go test ./integrations/_test -v -race
 
     - script:
         name: copy files to wercker output

@@ -23,6 +23,10 @@
 			"Rev": "9c068cf16d982f8bd444b8c352acbeec34c4fe5b"
 		},
 		{
+			"ImportPath": "github.com/streadway/amqp",
+			"Rev": "b4f3ceab0337f013208d31348b578d83c0064744"
+		},
+		{
 			"ImportPath": "github.com/unrolled/render",
 			"Rev": "40a2dfa24398d37b4a14938442a0f4fe4307b929"
 		}
