@@ -10,7 +10,7 @@ import (
 	"github.com/unrolled/render"
 )
 
-func addTelemetryHandler(formatter *render.Render) http.HandlerFunc {
+func addTelemetryHandler(formatter *render.Render, dispatcher queueDispatcher) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		payload, _ := ioutil.ReadAll(req.Body)
 		var newTelemetryCommand telemetryCommand
@@ -31,6 +31,7 @@ func addTelemetryHandler(formatter *render.Render) http.HandlerFunc {
 			CoreTemp:         newTelemetryCommand.CoreTemp,
 			ReceivedOn:       time.Now().UnixNano(),
 		}
+		dispatcher.DispatchMessage("telemetry", evt)
 		formatter.JSON(w, http.StatusCreated, evt)
 	}
 }

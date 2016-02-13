@@ -20,10 +20,10 @@ var (
 	})
 )
 
-func MakeTestServer() *negroni.Negroni {
+func MakeTestServer(dispatcher queueDispatcher) *negroni.Negroni {
 	server := negroni.New() // don't need all the middleware here or logging.
 	mx := mux.NewRouter()
-	initRoutes(mx, formatter)
+	initRoutes(mx, formatter, dispatcher)
 	server.UseHandler(mx)
 	return server
 }
@@ -34,9 +34,9 @@ func TestAddValidTelemetryCreatesCommand(t *testing.T) {
 		recorder *httptest.ResponseRecorder
 	)
 
-	dispatcher := fakes.FakeQueueDispatcher{}
+	dispatcher := fakes.NewFakeQueueDispatcher()
 
-	server := MakeTestServer()
+	server := MakeTestServer(dispatcher)
 	recorder = httptest.NewRecorder()
 	body := []byte("{\"drone_id\":\"drone666\", \"battery\": 72, \"uptime\": 6941, \"core_temp\": 21 }")
 	reader := bytes.NewReader(body)
@@ -48,6 +48,9 @@ func TestAddValidTelemetryCreatesCommand(t *testing.T) {
 	}
 	if dispatcher.DispatchCount != 1 {
 		t.Errorf("Expected queue dispatch count of 1, got %d", dispatcher.DispatchCount)
+	}
+	if len(dispatcher.Messages["telemetry"]) != 1 {
+		t.Errorf("Expected telemetry message count of 1, got %d", len(dispatcher.Messages["telemetry"]))
 	}
 
 	var telemetryResponse dronescommon.TelemetryUpdatedEvent
@@ -70,7 +73,8 @@ func TestAddInvalidTelemetryReturnsBadRequest(t *testing.T) {
 		recorder *httptest.ResponseRecorder
 	)
 
-	server := MakeTestServer()
+	dispatcher := fakes.NewFakeQueueDispatcher()
+	server := MakeTestServer(dispatcher)
 	recorder = httptest.NewRecorder()
 	body := []byte("{\"foo\":\"bar\"}")
 	reader := bytes.NewReader(body)
@@ -80,6 +84,9 @@ func TestAddInvalidTelemetryReturnsBadRequest(t *testing.T) {
 	if recorder.Code != http.StatusBadRequest {
 		t.Errorf("Expected creation of invalid/unparseable new telemetry item to return bad request, got %d", recorder.Code)
 	}
+	if dispatcher.DispatchCount != 0 {
+		t.Errorf("Expected dispatcher to dispatch 0 messages, got %d", dispatcher.DispatchCount)
+	}
 }
 
 func TestAddValidPositionCreatesCommand(t *testing.T) {
@@ -88,7 +95,8 @@ func TestAddValidPositionCreatesCommand(t *testing.T) {
 		recorder *httptest.ResponseRecorder
 	)
 
-	server := MakeTestServer()
+	dispatcher := fakes.NewFakeQueueDispatcher()
+	server := MakeTestServer(dispatcher)
 	recorder = httptest.NewRecorder()
 	body := []byte("{\"foo\":\"bar\"}")
 	reader := bytes.NewReader(body)
@@ -106,9 +114,11 @@ func TestAddValidAlertCreatesCommand(t *testing.T) {
 		recorder *httptest.ResponseRecorder
 	)
 
-	server := MakeTestServer()
+	dispatcher := fakes.NewFakeQueueDispatcher()
+	server := MakeTestServer(dispatcher)
 	recorder = httptest.NewRecorder()
-	body := []byte("{\"foo\":\"bar\"}")
+
+	body := []byte("{\"drone_id\":\"alertingdrone4\", \"fault_code\", 12, \"description\": \"all the things are failing\"}")
 	reader := bytes.NewReader(body)
 	request, _ = http.NewRequest("POST", "/api/cmds/alerts", reader)
 	server.ServeHTTP(recorder, request)

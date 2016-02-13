@@ -16,14 +16,15 @@ func NewServer() *negroni.Negroni {
 	n := negroni.Classic()
 	mx := mux.NewRouter()
 
-	initRoutes(mx, formatter)
+	dispatcher := &amqpDispatcher{} // TODO: replace with real values
+	initRoutes(mx, formatter, dispatcher)
 
 	n.UseHandler(mx)
 	return n
 }
 
-func initRoutes(mx *mux.Router, formatter *render.Render) {
-	mx.HandleFunc("/api/cmds/telemetry", addTelemetryHandler(formatter)).Methods("POST")
+func initRoutes(mx *mux.Router, formatter *render.Render, dispatcher queueDispatcher) {
+	mx.HandleFunc("/api/cmds/telemetry", addTelemetryHandler(formatter, dispatcher)).Methods("POST")
 	mx.HandleFunc("/api/cmds/alerts", addAlertHandler(formatter)).Methods("POST")
 	mx.HandleFunc("/api/cmds/positions", addPositionHandler(formatter)).Methods("POST")
 }
