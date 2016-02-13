@@ -20,10 +20,11 @@ func TestAmqpDispatcherSubmitsToQueue(t *testing.T) {
 	//	rabbitUserName := os.Getenv("WERCKER_RABBITMQ_USERNAME")
 	//rabbitHost := os.Getenv("RABBITMQ_PORT_5671_TCP_ADDR")
 	//rabbitPort := os.Getenv("RABBITMQ_PORT_5671_TCP_PORT")
-	rabbitPort := os.Getenv("RABBITMQ_PORT_4369_TCP")
+	rabbitHost := os.Getenv("RABBITMQ_PORT_4369_TCP_ADDR")
+
 	rabbitURL := "amqp://guest:guest@192.168.99.100:5672/"
-	if len(rabbitPort) > 0 {
-		rabbitURL = fmt.Sprintf("%s", rabbitPort)
+	if len(rabbitHost) > 0 {
+		rabbitURL = fmt.Sprintf("amqp://guest:guest@%s:4369/", rabbitHost)
 	}
 
 	conn, err := amqp.Dial(rabbitURL)
