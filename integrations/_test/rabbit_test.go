@@ -15,18 +15,10 @@ type fakeMessage struct {
 }
 
 func TestAmqpDispatcherSubmitsToQueue(t *testing.T) {
-
-	//rabbitPw := os.Getenv("WERCKER_RABBITMQ_PASSWORD")
-	//	rabbitUserName := os.Getenv("WERCKER_RABBITMQ_USERNAME")
-	//rabbitHost := os.Getenv("RABBITMQ_PORT_5671_TCP_ADDR")
-	//rabbitPort := os.Getenv("RABBITMQ_PORT_5671_TCP_PORT")
 	rabbitHost := os.Getenv("RABBITMQ_PORT_5672_TCP_ADDR")
-	//rabbitName := os.Getenv("RABBITMQ_NAME")
+	rabbitURL := "amqp://guest:guest@192.168.99.100:5672/" // default fallback if not using wercker env vars
 
-	rabbitURL := "amqp://guest:guest@192.168.99.100:5672/"
 	if len(rabbitHost) > 0 {
-		//	rabbitURL = fmt.Sprintf("amqp://guest:guest@%s:4369%s", rabbitHost, rabbitName)
-		//rabbitURL = fmt.Sprintf("amqp://guest:guest@%s:4369/", rabbitHost)
 		rabbitURL = fmt.Sprintf("amqp://guest:guest@%s:5672/", rabbitHost)
 	}
 	fmt.Printf("\nUsing URL (%s) for Rabbit.\n", rabbitURL)
@@ -48,9 +40,11 @@ func TestAmqpDispatcherSubmitsToQueue(t *testing.T) {
 		nil,     // arguments
 	)
 	failOnError(t, err, "Failed to declare a queue")
-	dispatcher := NewAMQPDispatcher(ch, q.Name)
+	dispatcher := NewAMQPDispatcher(ch, q.Name, true) // require delivery ack for testing
+	fmt.Println("About to dispatch message to queue...")
 	err = dispatcher.DispatchMessage(fakeMessage{a: "hello", b: "world"})
 	failOnError(t, err, "Failed to dispatch message on channel/queue")
+	fmt.Println("'spatched.")
 }
 
 func failOnError(t *testing.T, err error, msg string) {
