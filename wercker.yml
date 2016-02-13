@@ -38,6 +38,6 @@ deploy:
        password: $PASSWORD
        cmd: /pipeline/source/drones-cmds
        port: "8080"
-       tag: v1
+       tag: 1.0
        repository: cloudnativego/drones-cmds
        registry: https://registry.hub.docker.com
