@@ -23,7 +23,7 @@ type positionCommand struct {
 }
 
 type queueDispatcher interface {
-	DispatchMessage(queue string, message interface{}) (err error)
+	DispatchMessage(message interface{}) (err error)
 }
 
 func (telemetry telemetryCommand) isValid() (valid bool) {

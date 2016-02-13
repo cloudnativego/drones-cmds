@@ -31,7 +31,7 @@ func addTelemetryHandler(formatter *render.Render, dispatcher queueDispatcher) h
 			CoreTemp:         newTelemetryCommand.CoreTemp,
 			ReceivedOn:       time.Now().UnixNano(),
 		}
-		dispatcher.DispatchMessage("telemetry", evt)
+		dispatcher.DispatchMessage(evt)
 		formatter.JSON(w, http.StatusCreated, evt)
 	}
 }
@@ -55,7 +55,7 @@ func addAlertHandler(formatter *render.Render, dispatcher queueDispatcher) http.
 			Description: newAlertCommand.Description,
 			ReceivedOn:  time.Now().UnixNano(),
 		}
-		dispatcher.DispatchMessage("alert", evt)
+		dispatcher.DispatchMessage(evt)
 		formatter.JSON(w, http.StatusCreated, evt)
 	}
 }
@@ -82,7 +82,7 @@ func addPositionHandler(formatter *render.Render, dispatcher queueDispatcher) ht
 			HeadingCardinal: newPositionCommand.HeadingCardinal,
 			ReceivedOn:      time.Now().UnixNano(),
 		}
-		dispatcher.DispatchMessage("position", evt)
+		dispatcher.DispatchMessage(evt)
 		formatter.JSON(w, http.StatusCreated, evt)
 	}
 }

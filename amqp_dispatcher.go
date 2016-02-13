@@ -24,7 +24,7 @@ type queuePublishableChannel interface {
 }
 
 // DispatchMessage implementation of dispatch message interface method
-func (q *AmqpDispatcher) DispatchMessage(queue string, message interface{}) (err error) {
+func (q *AmqpDispatcher) DispatchMessage(message interface{}) (err error) {
 	body, err := json.Marshal(message)
 	if err != nil {
 		err = q.channel.Publish(

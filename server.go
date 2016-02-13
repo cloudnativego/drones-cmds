@@ -17,17 +17,19 @@ func NewServer() *negroni.Negroni {
 	n := negroni.Classic()
 	mx := mux.NewRouter()
 
-	dispatcher := fakes.NewFakeQueueDispatcher()
+	positionDispatcher := fakes.NewFakeQueueDispatcher()
+	telemetryDispatcher := fakes.NewFakeQueueDispatcher()
+	alertDispatcher := fakes.NewFakeQueueDispatcher()
 	// TODO - if we detect real bound Rabbit, use the AMQP dispatcher
-	//dispatcher := NewAMQPDispatcher(nil)
-	initRoutes(mx, formatter, dispatcher)
+
+	initRoutes(mx, formatter, telemetryDispatcher, alertDispatcher, positionDispatcher)
 
 	n.UseHandler(mx)
 	return n
 }
 
-func initRoutes(mx *mux.Router, formatter *render.Render, dispatcher queueDispatcher) {
-	mx.HandleFunc("/api/cmds/telemetry", addTelemetryHandler(formatter, dispatcher)).Methods("POST")
-	mx.HandleFunc("/api/cmds/alerts", addAlertHandler(formatter, dispatcher)).Methods("POST")
-	mx.HandleFunc("/api/cmds/positions", addPositionHandler(formatter, dispatcher)).Methods("POST")
+func initRoutes(mx *mux.Router, formatter *render.Render, telemetryDispatcher queueDispatcher, alertDispatcher queueDispatcher, positionDispatcher queueDispatcher) {
+	mx.HandleFunc("/api/cmds/telemetry", addTelemetryHandler(formatter, telemetryDispatcher)).Methods("POST")
+	mx.HandleFunc("/api/cmds/alerts", addAlertHandler(formatter, alertDispatcher)).Methods("POST")
+	mx.HandleFunc("/api/cmds/positions", addPositionHandler(formatter, positionDispatcher)).Methods("POST")
 }

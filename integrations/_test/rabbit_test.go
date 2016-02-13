@@ -49,7 +49,7 @@ func TestAmqpDispatcherSubmitsToQueue(t *testing.T) {
 	)
 	failOnError(t, err, "Failed to declare a queue")
 	dispatcher := NewAMQPDispatcher(ch, q.Name)
-	err = dispatcher.DispatchMessage("unused", fakeMessage{a: "hello", b: "world"})
+	err = dispatcher.DispatchMessage(fakeMessage{a: "hello", b: "world"})
 	failOnError(t, err, "Failed to dispatch message on channel/queue")
 }
 
