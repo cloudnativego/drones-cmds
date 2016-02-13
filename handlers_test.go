@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/cloudnativego/drones-cmds/fakes"
 	dronescommon "github.com/cloudnativego/drones-common"
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
@@ -33,6 +34,8 @@ func TestAddValidTelemetryCreatesCommand(t *testing.T) {
 		recorder *httptest.ResponseRecorder
 	)
 
+	dispatcher := fakes.FakeQueueDispatcher{}
+
 	server := MakeTestServer()
 	recorder = httptest.NewRecorder()
 	body := []byte("{\"drone_id\":\"drone666\", \"battery\": 72, \"uptime\": 6941, \"core_temp\": 21 }")
@@ -42,6 +45,9 @@ func TestAddValidTelemetryCreatesCommand(t *testing.T) {
 
 	if recorder.Code != http.StatusCreated {
 		t.Errorf("Expected creation of new telemetry item to return 201, got %d", recorder.Code)
+	}
+	if dispatcher.DispatchCount != 1 {
+		t.Errorf("Expected queue dispatch count of 1, got %d", dispatcher.DispatchCount)
 	}
 
 	var telemetryResponse dronescommon.TelemetryUpdatedEvent

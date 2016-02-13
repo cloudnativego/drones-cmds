@@ -22,6 +22,10 @@ type positionCommand struct {
 	HeadingCardinal int     `json:"heading_cardinal"`
 }
 
+type queueDispatcher interface {
+	DispatchMessage(queue string, message interface{}) (err error)
+}
+
 func (telemetry telemetryCommand) isValid() (valid bool) {
 	valid = true
 	if len(telemetry.DroneID) == 0 {
