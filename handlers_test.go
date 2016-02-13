@@ -119,8 +119,8 @@ func TestAddValidPositionCreatesCommand(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not unmarshal payload into position response object")
 	}
-	if positionResponse.DroneID != "positiondrone2" {
-		t.Errorf("Expected drone ID of 'positiondrone2' got %s", positionResponse.DroneID)
+	if positionResponse.DroneID != "positiondrone1" {
+		t.Errorf("Expected drone ID of 'positiondrone1' got %s", positionResponse.DroneID)
 	}
 	if positionResponse.CurrentSpeed != 41.3 {
 		t.Errorf("Expected drone speed of 41.3, got %f", positionResponse.CurrentSpeed)

@@ -47,3 +47,17 @@ func (alert alertCommand) isValid() (valid bool) {
 	}
 	return
 }
+
+func (position positionCommand) isValid() (valid bool) {
+	valid = true
+	if len(position.DroneID) == 0 {
+		valid = false
+	}
+	if position.Longitude < 0 || position.Latitude < 0 || position.HeadingCardinal < 0 {
+		valid = false
+	}
+	// There's little other validation we can add to a position report without
+	// assigning 0 as a "bad data" signal, which we know is a terrible idea for
+	// any IoT data gathering app.
+	return
+}

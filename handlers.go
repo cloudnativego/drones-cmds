@@ -62,6 +62,27 @@ func addAlertHandler(formatter *render.Render, dispatcher queueDispatcher) http.
 
 func addPositionHandler(formatter *render.Render, dispatcher queueDispatcher) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		formatter.JSON(w, http.StatusCreated, "tbd")
+		payload, _ := ioutil.ReadAll(req.Body)
+		var newPositionCommand positionCommand
+		err := json.Unmarshal(payload, &newPositionCommand)
+		if err != nil {
+			formatter.Text(w, http.StatusBadRequest, "Failed to parse add position command.")
+			return
+		}
+		if !newPositionCommand.isValid() {
+			formatter.Text(w, http.StatusBadRequest, "Invalid position command.")
+			return
+		}
+		evt := dronescommon.PositionChangedEvent{
+			DroneID:         newPositionCommand.DroneID,
+			Longitude:       newPositionCommand.Longitude,
+			Latitude:        newPositionCommand.Latitude,
+			Altitude:        newPositionCommand.Altitude,
+			CurrentSpeed:    newPositionCommand.CurrentSpeed,
+			HeadingCardinal: newPositionCommand.HeadingCardinal,
+			ReceivedOn:      time.Now().UnixNano(),
+		}
+		dispatcher.DispatchMessage("position", evt)
+		formatter.JSON(w, http.StatusCreated, evt)
 	}
 }
