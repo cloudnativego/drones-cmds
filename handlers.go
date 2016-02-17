@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -31,6 +32,7 @@ func addTelemetryHandler(formatter *render.Render, dispatcher queueDispatcher) h
 			CoreTemp:         newTelemetryCommand.CoreTemp,
 			ReceivedOn:       time.Now().UnixNano(),
 		}
+		fmt.Println("About to dispatch message...")
 		dispatcher.DispatchMessage(evt)
 		formatter.JSON(w, http.StatusCreated, evt)
 	}

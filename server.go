@@ -16,7 +16,6 @@ import (
 
 // NewServer configures and returns a Server.
 func NewServer() *negroni.Negroni {
-
 	formatter := render.New(render.Options{
 		IndentJSON: true,
 	})
@@ -35,8 +34,9 @@ func NewServer() *negroni.Negroni {
 		telemetryDispatcher = fakes.NewFakeQueueDispatcher()
 		alertDispatcher = fakes.NewFakeQueueDispatcher()
 	} else {
+		fmt.Println("Got a valid CF environment.")
 		positionDispatcher = buildDispatcher("positions", appEnv)
-		telemetryDispatcher = buildDispatcher("telemtry", appEnv)
+		telemetryDispatcher = buildDispatcher("telemetry", appEnv)
 		alertDispatcher = buildDispatcher("alerts", appEnv)
 	}
 
@@ -79,11 +79,9 @@ func createAMQPDispatcher(queueName string, url string) queueDispatcher {
 
 	conn, err := amqp.Dial(url)
 	failOnError(err, "Failed to connect to RabbitMQ")
-	defer conn.Close()
 
 	ch, err := conn.Channel()
 	failOnError(err, "Failed to open a channel")
-	defer ch.Close()
 
 	q, err := ch.QueueDeclare(
 		queueName, // name

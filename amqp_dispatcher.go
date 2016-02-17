@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/streadway/amqp"
 )
@@ -26,8 +27,9 @@ type queuePublishableChannel interface {
 
 // DispatchMessage implementation of dispatch message interface method
 func (q *AmqpDispatcher) DispatchMessage(message interface{}) (err error) {
+	fmt.Printf("Dispatching message to queue %s\n", q.queueName)
 	body, err := json.Marshal(message)
-	if err != nil {
+	if err == nil {
 		err = q.channel.Publish(
 			"",              // exchange
 			q.queueName,     // routing key
@@ -37,6 +39,11 @@ func (q *AmqpDispatcher) DispatchMessage(message interface{}) (err error) {
 				ContentType: "text/plain",
 				Body:        []byte(body),
 			})
+		if err != nil {
+			fmt.Printf("Failed to dispatch message: %s\n", err)
+		}
+	} else {
+		fmt.Printf("Failed to marshal message %v (%s)\n", message, err)
 	}
 	return
 }
