@@ -6,6 +6,15 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "github.com/cloudfoundry-community/go-cfenv",
+			"Comment": "v1.12",
+			"Rev": "c682e189b94b0b2ec6edf12363df2eecf29d7256"
+		},
+		{
+			"ImportPath": "github.com/cloudnativego/cf-tools",
+			"Rev": "dc8d414d5a043d522e3750610023aa8994abaaff"
+		},
+		{
 			"ImportPath": "github.com/cloudnativego/drones-common",
 			"Rev": "dc32cddb1c0a399206eb47373ea8ec29d31a99d1"
 		},
@@ -21,6 +30,10 @@
 		{
 			"ImportPath": "github.com/gorilla/mux",
 			"Rev": "9c068cf16d982f8bd444b8c352acbeec34c4fe5b"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/mapstructure",
+			"Rev": "281073eb9eb092240d33ef253c404f1cca550309"
 		},
 		{
 			"ImportPath": "github.com/streadway/amqp",
