@@ -8,7 +8,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/cloudfoundry-community/go-cfenv"
 	. "github.com/cloudnativego/drones-cmds/service"
@@ -20,14 +19,14 @@ var (
 	appEnv, _ = cfenv.Current()
 	server    = NewServer(appEnv)
 
-	telemetry1 = []byte("{\"drone_id\": \"abc1234\", \"battery\": 80, \"uptime\": 3200, \"core_temp\": 20 }")
-	telemetry2 = []byte("{\"drone_id\": \"drone2\", \"battery\": 40, \"uptime\": 1200, \"core_temp\": 10 }")
+	telemetry1     = []byte("{\"drone_id\": \"abc1234\", \"battery\": 80, \"uptime\": 3200, \"core_temp\": 20 }")
+	telemetry2     = []byte("{\"drone_id\": \"drone2\", \"battery\": 40, \"uptime\": 1200, \"core_temp\": 10 }")
+	doneTelemetry  = make(chan error)
+	telemetryCount = 0
 )
 
 func TestIntegration(t *testing.T) {
 	fmt.Println("== Integration Test Scenario ==")
-
-	consumeRabbit(t)
 
 	telemetryReply, err := submitTelemetry(t, telemetry1)
 	if err != nil {
@@ -48,8 +47,11 @@ func TestIntegration(t *testing.T) {
 		t.Errorf("Failed to get a matching reply from 2nd telemetry submit: %+v\n", telemetryReply2)
 	}
 
-	// TODO don't use a sleep, use channel synchronization
-	time.Sleep(2000 * time.Millisecond)
+	consumeRabbit(t)
+	<-doneTelemetry
+	if telemetryCount != 2 {
+		t.Errorf("Didn't dequeue 2 telemetry events.")
+	}
 }
 
 /*
@@ -80,7 +82,7 @@ func consumeRabbit(t *testing.T) {
 	)
 
 	// TODO: set up a real consumer...
-	_, err = ch.Consume(
+	telemetryIn, err := ch.Consume(
 		telemetryQ.Name,
 		"",
 		true,
@@ -90,14 +92,12 @@ func consumeRabbit(t *testing.T) {
 		nil,
 	)
 
-	/*	go func() {
-		for {
-			select {
-			case telemetryRaw := <-telemetryIn:
-				reactTelemetry(telemetryRaw)
-			}
+	go func() {
+		for d := range telemetryIn {
+			reactTelemetry(d)
 		}
-	}() */
+		doneTelemetry <- nil
+	}()
 }
 
 func reactTelemetry(telemetryRaw amqp.Delivery) {
@@ -105,6 +105,7 @@ func reactTelemetry(telemetryRaw amqp.Delivery) {
 	err := json.Unmarshal(telemetryRaw.Body, &event)
 	if err == nil {
 		fmt.Printf("Telemetry Received: %+v\n", event)
+		telemetryCount++
 	} else {
 		fmt.Printf("Failed to de-serialize raw telemetry from queue, %v\n", err)
 	}
