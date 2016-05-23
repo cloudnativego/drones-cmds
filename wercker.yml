@@ -9,33 +9,37 @@ build:
     - setup-go-workspace
 
     - script:
-        name: env
-        code: env
-
-    - script:
         name: go get
         code: |
           cd $WERCKER_SOURCE_DIR
           go version
-          go get -u github.com/tools/godep
+          go get -u github.com/Masterminds/glide
+          go get -u github.com/cloudnativego/cf-tools/vcapinate
           export PATH=$WERCKER_SOURCE_DIR/bin:$PATH
+          glide install
 
     # Build the project
     - script:
         name: go build
         code: |
-          godep go build
+          go build
+
+    - script:
+        name: env
+        code: env
 
     # Test the project
     - script:
         name: go test
         code: |
-          godep go test -v ./...
+          go test -v ./service $(glide novendor)
 
     - script:
         name: integration tests
         code: |
-          godep go test ./integrations/_test -v -race
+          export VCAP_SERVICES=`vcapinate -path=./integrations/vcap.yml`
+          export VCAP_APPLICATION={}
+          go test ./integrations/_test -v -race
 
     - script:
         name: copy files to wercker output

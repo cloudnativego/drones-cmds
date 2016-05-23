@@ -1,6 +1,12 @@
 package main
 
-import "os"
+import (
+	"fmt"
+	"os"
+
+	"github.com/cloudfoundry-community/go-cfenv"
+	service "github.com/cloudnativego/drones-cmds/service"
+)
 
 func main() {
 	port := os.Getenv("PORT")
@@ -8,6 +14,11 @@ func main() {
 		port = "3000"
 	}
 
-	server := NewServer()
+	appEnv, err := cfenv.Current()
+	if err != nil {
+		fmt.Println("CF Environment not detected.")
+	}
+
+	server := service.NewServer(appEnv)
 	server.Run(":" + port)
 }

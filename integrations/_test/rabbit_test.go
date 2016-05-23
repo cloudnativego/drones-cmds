@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	. "github.com/cloudnativego/drones-cmds"
+	. "github.com/cloudnativego/drones-cmds/service"
 	"github.com/streadway/amqp"
 )
 

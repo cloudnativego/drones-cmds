@@ -1,4 +1,4 @@
-package main
+package service
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ import (
 )
 
 // NewServer configures and returns a Server.
-func NewServer() *negroni.Negroni {
+func NewServer(appEnv *cfenv.App) *negroni.Negroni {
 	formatter := render.New(render.Options{
 		IndentJSON: true,
 	})
@@ -23,22 +23,9 @@ func NewServer() *negroni.Negroni {
 	n := negroni.Classic()
 	mx := mux.NewRouter()
 
-	var positionDispatcher queueDispatcher
-	var telemetryDispatcher queueDispatcher
-	var alertDispatcher queueDispatcher
-
-	appEnv, err := cfenv.Current()
-	if err != nil {
-		fmt.Printf("Failed to get a CF environment, %s. Using fake defaults.\n", err)
-		positionDispatcher = fakes.NewFakeQueueDispatcher()
-		telemetryDispatcher = fakes.NewFakeQueueDispatcher()
-		alertDispatcher = fakes.NewFakeQueueDispatcher()
-	} else {
-		fmt.Println("Got a valid CF environment.")
-		positionDispatcher = buildDispatcher("positions", appEnv)
-		telemetryDispatcher = buildDispatcher("telemetry", appEnv)
-		alertDispatcher = buildDispatcher("alerts", appEnv)
-	}
+	positionDispatcher := buildDispatcher("positions", appEnv)
+	telemetryDispatcher := buildDispatcher("telemetry", appEnv)
+	alertDispatcher := buildDispatcher("alerts", appEnv)
 
 	initRoutes(mx, formatter, telemetryDispatcher, alertDispatcher, positionDispatcher)
 
@@ -68,7 +55,7 @@ func resolveAMQPURL(appEnv *cfenv.App) string {
 func buildDispatcher(queueName string, appEnv *cfenv.App) queueDispatcher {
 	url := resolveAMQPURL(appEnv)
 	if strings.Compare(url, "fake://foo") == 0 {
-		fmt.Println("Building fake dispatcher")
+		fmt.Printf("Building fake dispatcher for queue '%s'", queueName)
 		return fakes.NewFakeQueueDispatcher()
 	}
 	return createAMQPDispatcher(queueName, url)

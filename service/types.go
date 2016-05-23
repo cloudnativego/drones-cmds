@@ -1,4 +1,4 @@
-package main
+package service
 
 type telemetryCommand struct {
 	DroneID          string `json:"drone_id"`
