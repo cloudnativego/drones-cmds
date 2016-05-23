@@ -1,0 +1,5 @@
+---
+userprovided:
+- name: rabbit
+  credentials:
+    url: amqp://guest:guest@{{.RABBITMQ_PORT_5672_TCP_ADDR}}:5672/    
