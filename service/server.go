@@ -40,7 +40,7 @@ func initRoutes(mx *mux.Router, formatter *render.Render, telemetryDispatcher qu
 }
 
 func resolveAMQPURL(appEnv *cfenv.App) string {
-	url, err := cftools.GetVCAPServiceProperty("rabbit", "uri", appEnv)
+	url, err := cftools.GetVCAPServiceProperty("rabbit", "url", appEnv)
 	if err != nil {
 		fmt.Println("Failed to detect bound service for rabbit. Falling back to in-memory dispatcher (fake)")
 		return "fake://foo"

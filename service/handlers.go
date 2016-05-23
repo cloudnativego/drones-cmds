@@ -30,9 +30,9 @@ func addTelemetryHandler(formatter *render.Render, dispatcher queueDispatcher) h
 			RemainingBattery: newTelemetryCommand.RemainingBattery,
 			Uptime:           newTelemetryCommand.Uptime,
 			CoreTemp:         newTelemetryCommand.CoreTemp,
-			ReceivedOn:       time.Now().UnixNano(),
+			ReceivedOn:       time.Now().Unix(),
 		}
-		fmt.Println("About to dispatch message...")
+		fmt.Printf("Dispatching telemetry event for drone %s\n", newTelemetryCommand.DroneID)
 		dispatcher.DispatchMessage(evt)
 		formatter.JSON(w, http.StatusCreated, evt)
 	}
@@ -55,7 +55,7 @@ func addAlertHandler(formatter *render.Render, dispatcher queueDispatcher) http.
 			DroneID:     newAlertCommand.DroneID,
 			FaultCode:   newAlertCommand.FaultCode,
 			Description: newAlertCommand.Description,
-			ReceivedOn:  time.Now().UnixNano(),
+			ReceivedOn:  time.Now().Unix(),
 		}
 		dispatcher.DispatchMessage(evt)
 		formatter.JSON(w, http.StatusCreated, evt)
@@ -82,7 +82,7 @@ func addPositionHandler(formatter *render.Render, dispatcher queueDispatcher) ht
 			Altitude:        newPositionCommand.Altitude,
 			CurrentSpeed:    newPositionCommand.CurrentSpeed,
 			HeadingCardinal: newPositionCommand.HeadingCardinal,
-			ReceivedOn:      time.Now().UnixNano(),
+			ReceivedOn:      time.Now().Unix(),
 		}
 		dispatcher.DispatchMessage(evt)
 		formatter.JSON(w, http.StatusCreated, evt)

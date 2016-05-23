@@ -10,7 +10,7 @@ import (
 func TestResolvesProperRabbitURL(t *testing.T) {
 	fakeVCAP := []string{
 		`VCAP_APPLICATION={}`,
-		`VCAP_SERVICES={"cloudamqp": [{"credentials": {"uri": "amqp://foo.bar"}, "label": "p-rabbitmq", "name": "rabbit", "syslog_drain_url": "", "tags": []}]}`,
+		`VCAP_SERVICES={"rabbit": [{"credentials": {"url": "amqp://foo.bar"}, "label": "p-rabbitmq", "name": "rabbit", "syslog_drain_url": "", "tags": []}]}`,
 	}
 
 	testEnv := cfenv.Env(fakeVCAP)

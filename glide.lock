@@ -1,10 +1,10 @@
 hash: 3a8703570da8ca44c66d0f44a6652fc80fdf872c73a97d60b8e70325ccd34c63
-updated: 2016-05-23T09:03:20.816443192-04:00
+updated: 2016-05-23T09:51:46.980490611-04:00
 imports:
 - name: github.com/cloudfoundry-community/go-cfenv
   version: 18fa650ff6b7b4f6bd8f8611408d1533eb54a918
 - name: github.com/cloudnativego/cf-tools
-  version: f59655db37a9fbf2c5cf9095211b9950ff2dab24
+  version: 3cd300eb2a0c0f4c95246cc1b8a9a390edfe1c75
 - name: github.com/cloudnativego/drones-common
   version: 0376ddcc3a625f0f8fa12be6303f22992c0df154
 - name: github.com/codegangsta/negroni
