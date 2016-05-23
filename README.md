@@ -7,6 +7,8 @@ and converting them into events for dispatch into queues.
 ## RESTful Endpoints
 The following is a list of the REST endpoints exposed by this service.
 
-* **POST** to */api/cmds/telemetry* - Submit a new telemetry update command, adds a telemetry changed event to a queue.
-* **POST** to */api/cmds/alerts* - Submit a new alert command, adds an alert signaled event to a queue.
-* **POST** to */api/cmds/position* - Submit a new position command, adds a position changed event to a queue.
+| Resource | Method | Description |
+|---|---|---|
+| /api/cmds/telemetry | POST | Submits a new telemetry update command, dispatches corresponding event to queue |
+| /api/cmds/alerts | POST | Submits a new alert command |
+| /api/cmds/position | POST | Submits a new position update command |
