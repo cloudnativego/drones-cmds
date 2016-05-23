@@ -1,0 +1,9 @@
+package: github.com/cloudnativego/drones-cmds
+import:
+- package: github.com/cloudfoundry-community/go-cfenv
+- package: github.com/cloudnativego/cf-tools
+- package: github.com/cloudnativego/drones-common
+- package: github.com/codegangsta/negroni
+- package: github.com/gorilla/mux
+- package: github.com/streadway/amqp
+- package: github.com/unrolled/render
