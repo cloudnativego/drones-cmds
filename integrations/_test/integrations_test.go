@@ -23,6 +23,11 @@ var (
 	telemetry2     = []byte("{\"drone_id\": \"drone2\", \"battery\": 40, \"uptime\": 1200, \"core_temp\": 10 }")
 	doneTelemetry  = make(chan error)
 	telemetryCount = 0
+
+	alert1     = []byte("{\"drone_id\": \"abc1234\", \"fault_code\": 1, \"description\": \"super fail\"}")
+	alert2     = []byte("{\"drone_id\": \"drone2\", \"fault_code\": 2, \"description\": \"overheating\"}")
+	doneAlert  = make(chan error)
+	alertCount = 0
 )
 
 func TestIntegration(t *testing.T) {
@@ -34,7 +39,7 @@ func TestIntegration(t *testing.T) {
 		return
 	}
 	if telemetryReply.DroneID != "abc1234" {
-		t.Errorf("Failed to get a matching reply from the command server when submitting telemetry event: %+v\n", telemetryReply)
+		t.Errorf("Failed to get a matching reply from the command server when submitting telemetry comand: %+v\n", telemetryReply)
 		return
 	}
 
@@ -47,8 +52,29 @@ func TestIntegration(t *testing.T) {
 		t.Errorf("Failed to get a matching reply from 2nd telemetry submit: %+v\n", telemetryReply2)
 	}
 
+	alertReply, err := submitAlert(t, alert1)
+	if err != nil {
+		t.Errorf("Failed to submit an alert command: %s\n", err.Error())
+		return
+	}
+	if alertReply.DroneID != "abc1234" {
+		t.Errorf("Failed to get matching reply from submitting alert command: %+v\n", alertReply)
+		return
+	}
+
+	alertReply2, err := submitAlert(t, alert2)
+	if err != nil {
+		t.Errorf("Failed to submit 2nd alert: %s\n", err.Error())
+		return
+	}
+	if alertReply2.DroneID != "drone2" {
+		t.Errorf("Expecting matching reply from submitting 2nd alert command, got %+v\n", alertReply2)
+		return
+	}
+
 	consumeRabbit(t)
 	<-doneTelemetry
+	<-doneAlert
 	if telemetryCount != 2 {
 		t.Errorf("Didn't dequeue 2 telemetry events.")
 	}
@@ -81,9 +107,27 @@ func consumeRabbit(t *testing.T) {
 		nil,         // arguments
 	)
 
-	// TODO: set up a real consumer...
+	alertQ, err := ch.QueueDeclare(
+		"alerts", // name
+		false,    // durable
+		false,    // delete when unused
+		false,    // exclusive
+		false,    // no-wait
+		nil,      // arguments
+	)
+
 	telemetryIn, err := ch.Consume(
 		telemetryQ.Name,
+		"",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+
+	alertsIn, err := ch.Consume(
+		alertQ.Name,
 		"",
 		true,
 		false,
@@ -97,6 +141,10 @@ func consumeRabbit(t *testing.T) {
 			reactTelemetry(d)
 		}
 		doneTelemetry <- nil
+		for a := range alertsIn {
+			reactAlert(a)
+		}
+		doneAlert <- nil
 	}()
 }
 
@@ -108,6 +156,18 @@ func reactTelemetry(telemetryRaw amqp.Delivery) {
 		telemetryCount++
 	} else {
 		fmt.Printf("Failed to de-serialize raw telemetry from queue, %v\n", err)
+	}
+	return
+}
+
+func reactAlert(alertRaw amqp.Delivery) {
+	var event dronescommon.AlertSignalledEvent
+	err := json.Unmarshal(alertRaw.Body, &event)
+	if err == nil {
+		fmt.Printf("Alert received: %+v\n", event)
+		alertCount++
+	} else {
+		fmt.Printf("Failed to de-serialize raw alert from queue, %v\n", err)
 	}
 	return
 }
@@ -125,6 +185,20 @@ func submitTelemetry(t *testing.T, body []byte) (reply dronescommon.TelemetryUpd
 		t.Errorf("Failed to submit telemetry : %s", err.Error())
 	}
 	reply = telemetryReply
+	return
+}
+
+func submitAlert(t *testing.T, body []byte) (reply dronescommon.AlertSignalledEvent, err error) {
+	rawReply, err := submitCommand(t, "/api/cmds/alerts", body)
+	var alertReply dronescommon.AlertSignalledEvent
+	if err == nil {
+		err = json.Unmarshal(rawReply, &alertReply)
+	}
+	if err != nil {
+		t.Errorf("Failed to submit alert: %s\n", err)
+		return
+	}
+	reply = alertReply
 	return
 }
 
