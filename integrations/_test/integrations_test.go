@@ -28,6 +28,12 @@ var (
 	alert2     = []byte("{\"drone_id\": \"drone2\", \"fault_code\": 2, \"description\": \"overheating\"}")
 	doneAlert  = make(chan error)
 	alertCount = 0
+
+	position1     = []byte("{\"drone_id\": \"abc1234\", \"latitude\": 31.01, \"longitude\": 72.5, \"altitude\": 3500.12, \"current_speed\": 15.12, \"heading_cardinal\": 0}")
+	position2     = []byte("{\"drone_id\": \"drone2\", \"latitude\": 31.01, \"longitude\": 72.5, \"altitude\": 3500.12, \"current_speed\": 15.12, \"heading_cardinal\": 0}")
+	position3     = []byte("{\"drone_id\": \"drone3\", \"latitude\": 31.01, \"longitude\": 72.5, \"altitude\": 3500.12, \"current_speed\": 15.12, \"heading_cardinal\": 0}")
+	donePosition  = make(chan error)
+	positionCount = 0
 )
 
 func TestIntegration(t *testing.T) {
@@ -72,11 +78,34 @@ func TestIntegration(t *testing.T) {
 		return
 	}
 
+	positionReply, _ := submitPosition(t, position1)
+	positionReply2, _ := submitPosition(t, position2)
+	positionReply3, _ := submitPosition(t, position3)
+	if positionReply.DroneID != "abc1234" {
+		t.Errorf("Got wrong reply from position submit: %+v\n", positionReply)
+		return
+	}
+	if positionReply2.DroneID != "drone2" {
+		t.Errorf("Got wrong reply from position submit, expected drone2, got %+vs\n", positionReply2)
+		return
+	}
+	if positionReply3.DroneID != "drone3" {
+		t.Errorf("Got wrong reply from position submit, expected drone3, got %+v\n", positionReply3)
+		return
+	}
+
 	consumeRabbit(t)
 	<-doneTelemetry
 	<-doneAlert
+	<-donePosition
 	if telemetryCount != 2 {
-		t.Errorf("Didn't dequeue 2 telemetry events.")
+		t.Errorf("Didn't dequeue 2 telemetry events.\n")
+	}
+	if alertCount != 2 {
+		t.Errorf("Didn't dequeue 2 alerts.\n")
+	}
+	if positionCount != 3 {
+		t.Error("Didn't dequeue 3 positions.\n")
 	}
 }
 
@@ -116,6 +145,15 @@ func consumeRabbit(t *testing.T) {
 		nil,      // arguments
 	)
 
+	positionsQ, err := ch.QueueDeclare(
+		"positions", // name
+		false,       // durable
+		false,       // delete when unused
+		false,       // exclusive
+		false,       // no-wait
+		nil,         // arguments
+	)
+
 	telemetryIn, err := ch.Consume(
 		telemetryQ.Name,
 		"",
@@ -136,6 +174,16 @@ func consumeRabbit(t *testing.T) {
 		nil,
 	)
 
+	positionsIn, err := ch.Consume(
+		positionsQ.Name,
+		"",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+
 	go func() {
 		for d := range telemetryIn {
 			reactTelemetry(d)
@@ -145,6 +193,10 @@ func consumeRabbit(t *testing.T) {
 			reactAlert(a)
 		}
 		doneAlert <- nil
+		for p := range positionsIn {
+			reactPosition(p)
+		}
+		donePosition <- nil
 	}()
 }
 
@@ -158,6 +210,17 @@ func reactTelemetry(telemetryRaw amqp.Delivery) {
 		fmt.Printf("Failed to de-serialize raw telemetry from queue, %v\n", err)
 	}
 	return
+}
+
+func reactPosition(positionRaw amqp.Delivery) {
+	var event dronescommon.PositionChangedEvent
+	err := json.Unmarshal(positionRaw.Body, &event)
+	if err == nil {
+		fmt.Printf("Position received: %+v\n", event)
+		positionCount++
+	} else {
+		fmt.Printf("Failed to de-serialize raw alert from queue, %v\n", err)
+	}
 }
 
 func reactAlert(alertRaw amqp.Delivery) {
@@ -199,6 +262,20 @@ func submitAlert(t *testing.T, body []byte) (reply dronescommon.AlertSignalledEv
 		return
 	}
 	reply = alertReply
+	return
+}
+
+func submitPosition(t *testing.T, body []byte) (reply dronescommon.PositionChangedEvent, err error) {
+	rawReply, err := submitCommand(t, "/api/cmds/positions", body)
+	var positionReply dronescommon.PositionChangedEvent
+	if err == nil {
+		err = json.Unmarshal(rawReply, &positionReply)
+	}
+	if err != nil {
+		t.Errorf("Failed to submit position: %s\n", err)
+		return
+	}
+	reply = positionReply
 	return
 }
 
